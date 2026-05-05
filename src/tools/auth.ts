@@ -24,21 +24,21 @@ async function ensureConnectorActive(
   connector: string,
   identifier: string,
 ): Promise<void> {
-  const response = await client.connectedAccounts.getOrCreateConnectedAccount({
-    connector,
+  const response = await client.actions.getOrCreateConnectedAccount({
+    connectionName: connector,
     identifier,
   });
 
   if (response.connectedAccount?.status !== ConnectorStatus.ACTIVE) {
-    const linkResponse = await client.connectedAccounts.getMagicLinkForConnectedAccount({
-      connector,
+    const linkResponse = await client.actions.getAuthorizationLink({
+      connectionName: connector,
       identifier,
     });
     log.info(`\nAuthorize ${connector} here:\n  ${linkResponse.link}\n`);
     await waitForEnter(`Press Enter after you have authorized ${connector}...\n`);
 
     // Verify it became active
-    const check = await client.connectedAccounts.getOrCreateConnectedAccount({ connector, identifier });
+    const check = await client.actions.getOrCreateConnectedAccount({ connectionName: connector, identifier });
     if (check.connectedAccount?.status !== ConnectorStatus.ACTIVE) {
       throw new Error(`${connector} connector is still not active after authorization`);
     }
