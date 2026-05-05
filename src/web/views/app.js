@@ -44,6 +44,12 @@ function renderProposal(p) {
     <div class="section">
       <div class="section-label">Email reply (preview)</div>
       <div class="section-content">${escHtml(drafts.emailReplyBody)}</div>
+      <div class="info-callout">
+        ℹ️ Auto-send is not available with Scalekit's built-in Gmail connector (read-only).
+        To enable sending, implement a
+        <a href="https://docs.scalekit.com/agentkit/tools/custom-tools/" target="_blank">custom tool</a>
+        backed by your own Gmail OAuth app — then wire it into <code>act.ts</code>.
+      </div>
     </div>
 
     <div class="section">
@@ -54,7 +60,6 @@ function renderProposal(p) {
     <div class="actions">
       <div class="action-options">
         <label><input type="checkbox" id="issue-${p.id}" checked> Create GitHub issue</label>
-        <label style="opacity:0.45" title="Gmail connector is read-only — send not supported"><input type="checkbox" id="reply-${p.id}" disabled> Send email reply <span style="font-size:0.75em">(not available)</span></label>
       </div>
       <div class="action-buttons">
         <button class="btn-approve" onclick="approve(${p.id}, this)">Approve &amp; file</button>
