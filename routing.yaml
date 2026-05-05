@@ -2,34 +2,24 @@
 # Model names must match what llm.scalekit.cloud advertises.
 # Run: curl -H "Authorization: Bearer $LITELLM_API_KEY" $LITELLM_BASE_URL/v1/models
 models:
-  classify: claude-haiku-3-5
-  research: claude-haiku-3-5
-  tiebreak: claude-sonnet-4-5
-  draft_default: claude-sonnet-4-5
-  draft_sensitive: claude-opus-4   # used when category is security or legal
+  classify: claude-haiku-4-5
+  research: claude-haiku-4-5
+  tiebreak: claude-sonnet-4-6
+  draft_default: claude-sonnet-4-6
+  draft_sensitive: claude-opus-4-6   # used when category is security or legal
 
 # Repository routing: each repo maps keywords to labels and a Slack channel.
 # Keyword matching is case-insensitive substring search against
 # the combined subject + body of the classified thread.
+# For Slack DMs: set slack_channel to your Slack member ID (e.g. U0123456789)
 repos:
-  - name: scalekit-inc/scalekit-sdk-node
-    keywords: [node, npm, typescript, javascript, ts, esm]
-    labels: [sdk, area:node]
-    slack_channel: "#node-sdk"
+  - name: saif-shines/hacksmith
+    keywords: [bug, error, crash, feature, request, issue, help, support]
+    labels: [triage]
+    slack_channel: "D09MNBXG7NK"
 
-  - name: scalekit-inc/scalekit-sdk-python
-    keywords: [python, pypi, pip, py]
-    labels: [sdk, area:python]
-    slack_channel: "#python-sdk"
-
-  - name: scalekit-inc/developer-docs
-    keywords: [docs, documentation, tutorial, guide, broken link, readme, example]
-    labels: [docs]
-    slack_channel: "#devrel"
-
-# Fallback when no repo keyword matches or the match is ambiguous and
-# the tiebreak model cannot decide with high confidence.
+# Fallback when no repo keyword matches
 default:
-  name: scalekit-inc/triage
+  name: saif-shines/hacksmith
   labels: [needs-triage]
-  slack_channel: "#triage"
+  slack_channel: "D09MNBXG7NK"

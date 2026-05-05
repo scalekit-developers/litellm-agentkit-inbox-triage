@@ -38,7 +38,7 @@ export async function classifyThread(
   const userContent = [
     `Subject: ${thread.subject}`,
     `From: ${thread.from}`,
-    `Body:\n${thread.body.slice(0, 2000)}`,
+    `Body:\n${(thread.body ?? '').slice(0, 2000)}`,
   ].join('\n\n');
 
   const result = await complete({

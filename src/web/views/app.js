@@ -52,8 +52,14 @@ function renderProposal(p) {
     </div>
 
     <div class="actions">
-      <button class="btn-approve" onclick="approve(${p.id}, this)">Approve &amp; file</button>
-      <button class="btn-reject" onclick="reject(${p.id}, this)">Reject</button>
+      <div class="action-options">
+        <label><input type="checkbox" id="issue-${p.id}" checked> Create GitHub issue</label>
+        <label style="opacity:0.45" title="Gmail connector is read-only — send not supported"><input type="checkbox" id="reply-${p.id}" disabled> Send email reply <span style="font-size:0.75em">(not available)</span></label>
+      </div>
+      <div class="action-buttons">
+        <button class="btn-approve" onclick="approve(${p.id}, this)">Approve &amp; file</button>
+        <button class="btn-reject" onclick="reject(${p.id}, this)">Reject</button>
+      </div>
     </div>
     <div class="result-link" id="result-${p.id}"></div>
   `;
@@ -70,21 +76,32 @@ function escHtml(str) {
 }
 
 async function approve(id, btn) {
+  const rejectBtn = btn.nextElementSibling;
   btn.disabled = true;
-  btn.nextElementSibling.disabled = true;
+  rejectBtn.disabled = true;
   btn.textContent = 'Filing…';
 
+  const createIssue = document.getElementById(`issue-${id}`)?.checked ?? true;
+  const sendReply = document.getElementById(`reply-${id}`)?.checked ?? true;
+
   try {
-    const res = await fetch(`/api/proposals/${id}/approve`, { method: 'POST' });
+    const res = await fetch(`/api/proposals/${id}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ createIssue, sendReply }),
+    });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error ?? 'unknown error');
     const resultEl = document.getElementById(`result-${id}`);
-    resultEl.innerHTML = `✅ Filed: <a href="${data.githubUrl}" target="_blank">${data.githubUrl}</a>`;
+    const parts = [];
+    if (data.githubUrl) parts.push(`<a href="${data.githubUrl}" target="_blank">Issue filed</a>`);
+    if (data.emailSent) parts.push('Email sent');
+    resultEl.innerHTML = '✅ ' + (parts.length ? parts.join(' · ') : 'Done');
     btn.closest('.proposal').style.opacity = '0.5';
   } catch (err) {
     btn.textContent = 'Approve & file';
     btn.disabled = false;
-    btn.nextElementSibling.disabled = false;
+    rejectBtn.disabled = false;
     alert('Error: ' + err.message);
   }
 }

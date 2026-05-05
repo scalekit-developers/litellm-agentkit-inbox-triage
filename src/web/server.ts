@@ -10,7 +10,7 @@ import {
   updateProposalStatus,
   insertAction,
 } from '../store/db.js';
-import { actOnProposal } from '../pipeline/act.js';
+import { actOnProposal, type ActOptions } from '../pipeline/act.js';
 import { log } from '../lib/log.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -48,7 +48,11 @@ export function createServer(
     if (proposal.status !== 'pending') return res.status(409).json({ error: `proposal is ${proposal.status}` });
 
     try {
-      const result = await actOnProposal(client, proposal, identifier, connectors);
+      const options: ActOptions = {
+        createIssue: req.body?.createIssue !== false,
+        sendReply: req.body?.sendReply !== false,
+      };
+      const result = await actOnProposal(client, proposal, identifier, connectors, options);
       updateProposalStatus(db, id, 'approved');
       insertAction(db, {
         proposalId: id,

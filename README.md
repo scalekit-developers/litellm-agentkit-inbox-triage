@@ -16,11 +16,11 @@ An end-to-end agentic workflow that triages a Gmail inbox, routes each thread to
 ```
 Gmail poll
   │
-  ├─[classify]  claude-haiku-3-5  →  { category, severity, keywords }
+  ├─[classify]  claude-haiku-4-5  →  { category, severity, keywords }
   ├─[route]     keyword match against routing.yaml
-  ├─[research]  claude-haiku-3-5 + github_search_issues (tool loop)
-  ├─[tiebreak]  claude-sonnet-4-5  (only when multiple repos tie)
-  ├─[draft]     claude-sonnet-4-5 / claude-opus-4 for security/legal
+  ├─[research]  claude-haiku-4-5 + github_search_issues (tool loop)
+  ├─[tiebreak]  claude-sonnet-4-6  (only when multiple repos tie)
+  ├─[draft]     claude-sonnet-4-6 / claude-opus-4 for security/legal
   ├─[notify]    slack_send_message → #channel
   └─[dashboard] localhost:3000 — Approve → file issue + send reply
                                Reject  → discard
@@ -113,7 +113,7 @@ Send an email to the Gmail account you just connected. Include a stack trace or 
 `http://localhost:3000`
 
 A pending proposal appears showing:
-- Classification (category, severity) from claude-haiku-3-5
+- Classification (category, severity) from claude-haiku-4-5
 - Routed GitHub repository
 - Related issues found by the research agent
 - Draft issue body and email reply
@@ -133,10 +133,10 @@ Click **Reject** to discard without any side effects.
 
 ```yaml
 models:
-  classify: claude-haiku-3-5        # cheap, fast classification
-  research: claude-haiku-3-5        # tool-calling loop for issue search
-  tiebreak: claude-sonnet-4-5       # used when multiple repos tie
-  draft_default: claude-sonnet-4-5  # issue + reply drafting
+  classify: claude-haiku-4-5        # cheap, fast classification
+  research: claude-haiku-4-5        # tool-calling loop for issue search
+  tiebreak: claude-sonnet-4-6       # used when multiple repos tie
+  draft_default: claude-sonnet-4-6  # issue + reply drafting
   draft_sensitive: claude-opus-4    # security / legal category threads
 
 repos:

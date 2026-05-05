@@ -1,6 +1,6 @@
 import { ScalekitClient } from '@scalekit-sdk/node';
 import { callTool } from '../tools/agentkit.js';
-import { getCursor, updateCursor } from '../store/db.js';
+import { getCursor, updateCursor, threadAlreadyProcessed } from '../store/db.js';
 import type { GmailThread } from './types.js';
 import type { DatabaseSync } from 'node:sqlite';
 import { log } from '../lib/log.js';
@@ -37,6 +37,19 @@ function getHeader(msg: GmailMessage, name: string): string {
   return msg.payload?.headers?.find(h => h.name.toLowerCase() === name.toLowerCase())?.value ?? '';
 }
 
+function getMessageDate(msg: GmailMessage): string {
+  if (msg.internalDate) {
+    const ts = parseInt(msg.internalDate, 10);
+    if (!isNaN(ts)) return new Date(ts).toISOString();
+  }
+  const dateHeader = getHeader(msg, 'Date');
+  if (dateHeader) {
+    const d = new Date(dateHeader);
+    if (!isNaN(d.getTime())) return d.toISOString();
+  }
+  return new Date().toISOString();
+}
+
 export async function ingestThreads(
   client: ScalekitClient,
   db: DatabaseSync,
@@ -48,9 +61,9 @@ export async function ingestThreads(
   const fetchResult = await callTool(client, gmailConnectionName, 'gmail_fetch_mails', {
     query: `is:unread after:${Math.floor(new Date(cursor).getTime() / 1000)}`,
     max_results: 20,
-  }, identifier) as { messages?: Array<{ id: string; threadId: string }> };
+  }, identifier) as any;
 
-  const messageRefs = fetchResult.messages ?? [];
+  const messageRefs: Array<{ id: string; threadId: string }> = fetchResult?.messages ?? [];
   if (messageRefs.length === 0) return [];
 
   log.info({ count: messageRefs.length }, 'gmail: found unread messages');
@@ -59,20 +72,31 @@ export async function ingestThreads(
   let latestDate = cursor;
 
   for (const ref of messageRefs) {
-    const msg = await callTool(client, gmailConnectionName, 'gmail_get_message_by_id', {
+    const raw = await callTool(client, gmailConnectionName, 'gmail_get_message_by_id', {
       message_id: ref.id,
       format: 'full',
-    }, identifier) as GmailMessage;
+    }, identifier) as any;
 
-    const date = new Date(parseInt(msg.internalDate, 10)).toISOString();
+    // Connector wraps the Gmail message under a "message" key
+    const msg: GmailMessage = raw?.message ?? raw;
+
+    const threadId: string = msg.threadId ?? (raw?.message?.thread_id) ?? ref.id;
+
+    // Skip threads already in the proposals table (handles Gmail day-level cursor granularity)
+    if (threadAlreadyProcessed(db, threadId)) {
+      log.debug({ threadId }, 'ingest: skipping already-processed thread');
+      continue;
+    }
+
+    const date = getMessageDate(msg);
     if (date > latestDate) latestDate = date;
 
     threads.push({
-      threadId: msg.threadId,
+      threadId,
       subject: getHeader(msg, 'Subject') || '(no subject)',
       from: getHeader(msg, 'From'),
-      snippet: msg.snippet,
-      body: extractBody(msg),
+      snippet: msg.snippet ?? '',
+      body: extractBody(msg) ?? '',
       internalDate: date,
     });
   }

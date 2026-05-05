@@ -37,6 +37,10 @@ async function main() {
 
   log.info({ intervalMs: env.POLL_INTERVAL_MS }, 'poller started');
 
+  // Tracks thread IDs currently moving through the pipeline to prevent double-processing
+  // when a poll fires before the previous pipeline run has finished inserting into the DB.
+  const inFlight = new Set<string>();
+
   async function poll() {
     let threads;
     try {
@@ -47,6 +51,11 @@ async function main() {
     }
 
     for (const thread of threads) {
+      if (inFlight.has(thread.threadId)) {
+        log.debug({ threadId: thread.threadId }, 'poller: skipping thread already in-flight');
+        continue;
+      }
+      inFlight.add(thread.threadId);
       log.info({ threadId: thread.threadId, subject: thread.subject }, 'processing thread');
 
       try {
@@ -93,6 +102,8 @@ async function main() {
         log.info({ proposalId, repo: route.winner.name }, 'proposal queued');
       } catch (err) {
         log.error({ err, threadId: thread.threadId }, 'pipeline error — skipping thread');
+      } finally {
+        inFlight.delete(thread.threadId);
       }
     }
   }

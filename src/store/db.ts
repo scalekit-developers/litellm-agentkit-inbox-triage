@@ -98,6 +98,10 @@ export function getProposal(db: DatabaseSync, id: number): ProposalRow | undefin
   return db.prepare('SELECT * FROM proposals WHERE id = ?').get(id) as unknown as ProposalRow | undefined;
 }
 
+export function threadAlreadyProcessed(db: DatabaseSync, threadId: string): boolean {
+  return !!db.prepare('SELECT 1 FROM proposals WHERE thread_id = ?').get(threadId);
+}
+
 export function updateProposalStatus(db: DatabaseSync, id: number, status: ProposalStatus): void {
   db.prepare('UPDATE proposals SET status = ? WHERE id = ?').run(status, id);
 }
