@@ -17,14 +17,19 @@ async function main() {
   const env = loadEnv();
   const routing = loadRouting();
   const litellmConfig = { baseURL: env.LITELLM_BASE_URL, apiKey: env.LITELLM_API_KEY };
+  const connectors = {
+    gmail: env.GMAIL_CONNECTION_NAME,
+    github: env.GITHUB_CONNECTION_NAME,
+    slack: env.SLACK_CONNECTION_NAME,
+  };
 
   const client = createScalekitClient(env);
-  await setupConnectors(client, env.SCALEKIT_USER_IDENTIFIER);
+  await setupConnectors(client, env.SCALEKIT_USER_IDENTIFIER, connectors);
 
   const db = openDb(env.DATA_DIR);
 
   // Start approval dashboard
-  const app = createServer(db, client, env.SCALEKIT_USER_IDENTIFIER, env.PORT);
+  const app = createServer(db, client, env.SCALEKIT_USER_IDENTIFIER, env.PORT, connectors);
   startServer(app, env.PORT);
 
   log.info({ intervalMs: env.POLL_INTERVAL_MS }, 'poller started');
@@ -32,7 +37,7 @@ async function main() {
   async function poll() {
     let threads;
     try {
-      threads = await ingestThreads(client, db, env.SCALEKIT_USER_IDENTIFIER);
+      threads = await ingestThreads(client, db, env.SCALEKIT_USER_IDENTIFIER, connectors.gmail);
     } catch (err) {
       log.error({ err }, 'ingest failed');
       return;
@@ -57,7 +62,7 @@ async function main() {
 
         // Research
         const research = await researchRelatedIssues(
-          client, classification, route.winner, routing, litellmConfig, env.SCALEKIT_USER_IDENTIFIER,
+          client, classification, route.winner, routing, litellmConfig, env.SCALEKIT_USER_IDENTIFIER, connectors.github,
         );
 
         // Draft
@@ -76,7 +81,7 @@ async function main() {
 
         // Notify Slack
         const slackTs = await notifySlack(
-          client, proposalId, classification, route, drafts, env.SCALEKIT_USER_IDENTIFIER,
+          client, proposalId, classification, route, drafts, env.SCALEKIT_USER_IDENTIFIER, connectors.slack,
         );
         if (slackTs) {
           updateProposalSlackTs(db, proposalId, slackTs);

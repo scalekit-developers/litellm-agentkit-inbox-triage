@@ -3,6 +3,7 @@ import { callTool } from '../tools/agentkit.js';
 import type { ProposalRow } from '../store/db.js';
 import type { RouteResult } from './route.js';
 import type { DraftResult } from './draft.js';
+import type { ConnectorNames } from '../config.js';
 import { log } from '../lib/log.js';
 
 export interface ActResult {
@@ -15,6 +16,7 @@ export async function actOnProposal(
   client: ScalekitClient,
   proposal: ProposalRow,
   identifier: string,
+  connectors: ConnectorNames,
 ): Promise<ActResult> {
   const route: RouteResult = JSON.parse(proposal.route);
   const drafts: DraftResult = JSON.parse(proposal.drafts);
@@ -22,7 +24,7 @@ export async function actOnProposal(
 
   // 1. Create GitHub issue
   log.info({ repo: route.winner.name, title: drafts.issueTitle }, 'act: creating github issue');
-  const issue = await callTool(client, 'github', 'github_create_issue', {
+  const issue = await callTool(client, connectors.github, 'github_create_issue', {
     owner,
     repo,
     title: drafts.issueTitle,
@@ -37,7 +39,7 @@ export async function actOnProposal(
   const replyBody = `${drafts.emailReplyBody}\n\n---\nTracking issue: ${githubUrl}`;
   let emailSent = false;
   try {
-    await callTool(client, 'gmail', 'gmail_reply_to_email', {
+    await callTool(client, connectors.gmail, 'gmail_reply_to_email', {
       threadId: proposal.thread_id,
       body: replyBody,
     }, identifier);
@@ -52,7 +54,7 @@ export async function actOnProposal(
   if (proposal.slack_ts) {
     try {
       const channel = route.winner.slack_channel;
-      await callTool(client, 'slack', 'slack_update_message', {
+      await callTool(client, connectors.slack, 'slack_update_message', {
         channel,
         ts: proposal.slack_ts,
         text: `✅ Filed as <${githubUrl}|#${issue.number}> in ${route.winner.name}`,

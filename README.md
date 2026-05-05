@@ -43,8 +43,9 @@ Each stage runs a different model. You change the mapping in `routing.yaml` — 
 ### 1. Create a Scalekit project
 
 1. Sign up at [app.scalekit.com](https://app.scalekit.com) and create a project.
-2. In **Connected Apps**, enable the **Gmail**, **GitHub**, and **Slack** connectors.
-3. Copy your **Environment URL**, **Client ID**, and **Client Secret** from the project settings.
+2. Under **AgentKit → Connections**, create a connection for each service: Gmail, GitHub, and Slack.
+3. Copy the exact **Connection name** shown for each connection — it appears next to the connection type and may differ from the provider slug (e.g. you might see `gmail-prod` instead of `gmail`).
+4. Copy your **Environment URL**, **Client ID**, and **Client Secret** from the project settings.
 
 ### 2. Get a LiteLLM API key
 
@@ -71,6 +72,12 @@ SCALEKIT_ENV_URL=https://your-project.scalekit.cloud
 SCALEKIT_CLIENT_ID=skc_...
 SCALEKIT_CLIENT_SECRET=sks_...
 SCALEKIT_USER_IDENTIFIER=you@example.com   # any stable identifier
+
+# Exact Connection names from Scalekit dashboard → AgentKit → Connections
+GMAIL_CONNECTION_NAME=gmail      # copy from dashboard
+GITHUB_CONNECTION_NAME=github    # copy from dashboard
+SLACK_CONNECTION_NAME=slack      # copy from dashboard
+
 LITELLM_BASE_URL=https://llm.scalekit.cloud
 LITELLM_API_KEY=sk-...
 ```
@@ -153,6 +160,9 @@ default:
 | `SCALEKIT_CLIENT_ID` | OAuth client ID |
 | `SCALEKIT_CLIENT_SECRET` | OAuth client secret |
 | `SCALEKIT_USER_IDENTIFIER` | Stable identifier for the connected user (any string) |
+| `GMAIL_CONNECTION_NAME` | Exact Connection name from **AgentKit → Connections** (default: `gmail`) |
+| `GITHUB_CONNECTION_NAME` | Exact Connection name from **AgentKit → Connections** (default: `github`) |
+| `SLACK_CONNECTION_NAME` | Exact Connection name from **AgentKit → Connections** (default: `slack`) |
 | `LITELLM_BASE_URL` | LiteLLM gateway URL (default: `https://llm.scalekit.cloud`) |
 | `LITELLM_API_KEY` | Virtual API key from the Scalekit dashboard |
 | `POLL_INTERVAL_MS` | How often to poll Gmail (default: `5000`) |

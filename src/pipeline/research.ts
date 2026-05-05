@@ -51,6 +51,7 @@ export async function researchRelatedIssues(
   routing: RoutingConfig,
   litellmConfig: { baseURL: string; apiKey: string },
   identifier: string,
+  githubConnectionName: string,
 ): Promise<ResearchResult> {
   const messages: OpenAI.ChatCompletionMessageParam[] = [
     { role: 'system', content: SYSTEM_PROMPT },
@@ -98,7 +99,7 @@ export async function researchRelatedIssues(
 
       let toolResult: unknown;
       try {
-        toolResult = await callTool(client, 'github', 'github_search_issues', {
+        toolResult = await callTool(client, githubConnectionName, 'github_search_issues', {
           owner: args.repo.split('/')[0],
           repo: args.repo.split('/')[1],
           query: args.query,

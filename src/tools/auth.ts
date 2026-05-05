@@ -1,10 +1,8 @@
 import { ScalekitClient } from '@scalekit-sdk/node';
 import { ConnectorStatus } from '@scalekit-sdk/node/lib/pkg/grpc/scalekit/v1/connected_accounts/connected_accounts_pb.js';
 import * as readline from 'readline';
+import type { ConnectorNames } from '../config.js';
 import { log } from '../lib/log.js';
-
-const CONNECTORS = ['gmail', 'github', 'slack'] as const;
-type Connector = typeof CONNECTORS[number];
 
 export function createScalekitClient(env: {
   SCALEKIT_ENV_URL: string;
@@ -23,7 +21,7 @@ async function waitForEnter(prompt: string): Promise<void> {
 
 async function ensureConnectorActive(
   client: ScalekitClient,
-  connector: Connector,
+  connector: string,
   identifier: string,
 ): Promise<void> {
   const response = await client.connectedAccounts.getOrCreateConnectedAccount({
@@ -49,10 +47,14 @@ async function ensureConnectorActive(
   log.info({ connector }, 'connector active');
 }
 
-export async function setupConnectors(client: ScalekitClient, identifier: string): Promise<void> {
+export async function setupConnectors(
+  client: ScalekitClient,
+  identifier: string,
+  connectors: ConnectorNames,
+): Promise<void> {
   log.info('Checking connector authorization…');
-  for (const connector of CONNECTORS) {
-    await ensureConnectorActive(client, connector, identifier);
+  for (const connectionName of [connectors.gmail, connectors.github, connectors.slack]) {
+    await ensureConnectorActive(client, connectionName, identifier);
   }
   log.info('All connectors active.');
 }

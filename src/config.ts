@@ -11,6 +11,10 @@ const EnvSchema = z.object({
   SCALEKIT_CLIENT_ID: z.string().min(1),
   SCALEKIT_CLIENT_SECRET: z.string().min(1),
   SCALEKIT_USER_IDENTIFIER: z.string().min(1),
+  // Connection names must match the exact names in Scalekit dashboard → AgentKit → Connections
+  GMAIL_CONNECTION_NAME: z.string().min(1).default('gmail'),
+  GITHUB_CONNECTION_NAME: z.string().min(1).default('github'),
+  SLACK_CONNECTION_NAME: z.string().min(1).default('slack'),
   LITELLM_BASE_URL: z.string().url().default('https://llm.scalekit.cloud'),
   LITELLM_API_KEY: z.string().min(1),
   POLL_INTERVAL_MS: z.coerce.number().int().positive().default(5000),
@@ -19,6 +23,12 @@ const EnvSchema = z.object({
 });
 
 export type Env = z.infer<typeof EnvSchema>;
+
+export interface ConnectorNames {
+  gmail: string;
+  github: string;
+  slack: string;
+}
 
 export function loadEnv(): Env {
   const result = EnvSchema.safeParse(process.env);

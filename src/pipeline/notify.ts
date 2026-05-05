@@ -12,6 +12,7 @@ export async function notifySlack(
   route: RouteResult,
   drafts: DraftResult,
   identifier: string,
+  slackConnectionName: string,
 ): Promise<string | undefined> {
   const channel = route.winner.slack_channel;
   const severityEmoji = { critical: '🔴', high: '🟠', medium: '🟡', low: '🟢' }[classification.severity] ?? '⚪';
@@ -25,7 +26,7 @@ export async function notifySlack(
   ].join('\n');
 
   try {
-    const result = await callTool(client, 'slack', 'slack_send_message', {
+    const result = await callTool(client, slackConnectionName, 'slack_send_message', {
       channel,
       text,
     }, identifier) as { ts?: string };

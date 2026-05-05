@@ -41,10 +41,11 @@ export async function ingestThreads(
   client: ScalekitClient,
   db: DatabaseSync,
   identifier: string,
+  gmailConnectionName: string,
 ): Promise<GmailThread[]> {
   const cursor = getCursor(db);
 
-  const searchResult = await callTool(client, 'gmail', 'gmail_search_messages', {
+  const searchResult = await callTool(client, gmailConnectionName, 'gmail_search_messages', {
     query: `is:unread after:${Math.floor(new Date(cursor).getTime() / 1000)}`,
     maxResults: 20,
   }, identifier) as { messages?: Array<{ id: string; threadId: string }> };
@@ -58,7 +59,7 @@ export async function ingestThreads(
   let latestDate = cursor;
 
   for (const ref of messageRefs) {
-    const msg = await callTool(client, 'gmail', 'gmail_get_message', {
+    const msg = await callTool(client, gmailConnectionName, 'gmail_get_message', {
       messageId: ref.id,
       format: 'full',
     }, identifier) as GmailMessage;

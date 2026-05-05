@@ -3,6 +3,7 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import type { ScalekitClient } from '@scalekit-sdk/node';
 import type { DatabaseSync } from 'node:sqlite';
+import type { ConnectorNames } from '../config.js';
 import {
   getPendingProposals,
   getProposal,
@@ -19,6 +20,7 @@ export function createServer(
   client: ScalekitClient,
   identifier: string,
   port: number,
+  connectors: ConnectorNames,
 ): express.Express {
   const app = express();
   app.use(express.json());
@@ -46,7 +48,7 @@ export function createServer(
     if (proposal.status !== 'pending') return res.status(409).json({ error: `proposal is ${proposal.status}` });
 
     try {
-      const result = await actOnProposal(client, proposal, identifier);
+      const result = await actOnProposal(client, proposal, identifier, connectors);
       updateProposalStatus(db, id, 'approved');
       insertAction(db, {
         proposalId: id,
