@@ -1,0 +1,8 @@
+{
+  "threadId": "thread-001-abc",
+  "subject": "TypeError: Cannot read property 'token' of undefined in @scalekit-sdk/node",
+  "from": "developer@example.com",
+  "snippet": "Getting an error after upgrading to 2.5.0",
+  "body": "Hi,\n\nAfter upgrading @scalekit-sdk/node to 2.5.0 I'm getting this error in my TypeScript project:\n\n```\nTypeError: Cannot read property 'token' of undefined\n    at ScalekitClient.init (/node_modules/@scalekit-sdk/node/dist/index.js:42:18)\n    at async bootstrap (/src/app.ts:15:3)\n```\n\nThis worked fine on 2.4.1. Node.js 20.10, TypeScript 5.3.\n\nSteps to reproduce:\n1. npm install @scalekit-sdk/node@2.5.0\n2. Initialize client with valid env vars\n3. Call connectedAccounts.getOrCreateConnectedAccount\n\nIs there a known fix?\n\nThanks",
+  "internalDate": "2026-05-04T09:00:00.000Z"
+}

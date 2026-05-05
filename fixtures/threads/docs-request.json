@@ -1,0 +1,8 @@
+{
+  "threadId": "thread-002-def",
+  "subject": "Documentation request: SCIM group sync guide",
+  "from": "another-dev@example.com",
+  "snippet": "I couldn't find docs for SCIM group sync",
+  "body": "Hello,\n\nI've been looking through the documentation for instructions on setting up SCIM group sync but couldn't find a guide. The existing SCIM provisioning docs cover user sync but not groups.\n\nCould you add a tutorial or example for group sync with Azure AD?\n\nThanks",
+  "internalDate": "2026-05-04T10:30:00.000Z"
+}
