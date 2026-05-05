@@ -71,7 +71,6 @@ cp .env.example .env
 SCALEKIT_ENV_URL=https://your-project.scalekit.cloud
 SCALEKIT_CLIENT_ID=skc_...
 SCALEKIT_CLIENT_SECRET=sks_...
-SCALEKIT_USER_IDENTIFIER=<uuid>            # opaque stable ID — not an email address
 
 # Exact Connection names from Scalekit dashboard → AgentKit → Connections
 GMAIL_CONNECTION_NAME=gmail      # copy from dashboard
@@ -159,7 +158,7 @@ default:
 | `SCALEKIT_ENV_URL` | Your Scalekit environment URL |
 | `SCALEKIT_CLIENT_ID` | OAuth client ID |
 | `SCALEKIT_CLIENT_SECRET` | OAuth client secret |
-| `SCALEKIT_USER_IDENTIFIER` | Stable opaque ID for the connected user — use a UUID or internal user ID, **not** an email address. Generate one with `node -e "console.log(require('crypto').randomUUID())"` and never change it. |
+| _(auto-managed)_ | A stable opaque UUID is auto-generated on first run and persisted to `DATA_DIR/identifier.txt`. It ties all three connectors to the same user. Never change or delete this file — doing so orphans the connected accounts. |
 | `GMAIL_CONNECTION_NAME` | Exact Connection name from **AgentKit → Connections** (default: `gmail`) |
 | `GITHUB_CONNECTION_NAME` | Exact Connection name from **AgentKit → Connections** (default: `github`) |
 | `SLACK_CONNECTION_NAME` | Exact Connection name from **AgentKit → Connections** (default: `slack`) |

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { loadEnv, loadRouting } from './config.js';
+import { loadEnv, loadIdentifier, loadRouting } from './config.js';
 import { createScalekitClient, setupConnectors } from './tools/auth.js';
 import { openDb } from './store/db.js';
 import { ingestThreads } from './pipeline/ingest.js';
@@ -16,6 +16,7 @@ import { log } from './lib/log.js';
 async function main() {
   const env = loadEnv();
   const routing = loadRouting();
+  const identifier = loadIdentifier(env.DATA_DIR);
   const litellmConfig = { baseURL: env.LITELLM_BASE_URL, apiKey: env.LITELLM_API_KEY };
   const connectors = {
     gmail: env.GMAIL_CONNECTION_NAME,
@@ -23,13 +24,15 @@ async function main() {
     slack: env.SLACK_CONNECTION_NAME,
   };
 
+  log.info({ identifierFile: `${env.DATA_DIR}/identifier.txt` }, `user identifier: ${identifier}`);
+
   const client = createScalekitClient(env);
-  await setupConnectors(client, env.SCALEKIT_USER_IDENTIFIER, connectors);
+  await setupConnectors(client, identifier, connectors);
 
   const db = openDb(env.DATA_DIR);
 
   // Start approval dashboard
-  const app = createServer(db, client, env.SCALEKIT_USER_IDENTIFIER, env.PORT, connectors);
+  const app = createServer(db, client, identifier, env.PORT, connectors);
   startServer(app, env.PORT);
 
   log.info({ intervalMs: env.POLL_INTERVAL_MS }, 'poller started');
@@ -37,7 +40,7 @@ async function main() {
   async function poll() {
     let threads;
     try {
-      threads = await ingestThreads(client, db, env.SCALEKIT_USER_IDENTIFIER, connectors.gmail);
+      threads = await ingestThreads(client, db, identifier, connectors.gmail);
     } catch (err) {
       log.error({ err }, 'ingest failed');
       return;
@@ -62,7 +65,7 @@ async function main() {
 
         // Research
         const research = await researchRelatedIssues(
-          client, classification, route.winner, routing, litellmConfig, env.SCALEKIT_USER_IDENTIFIER, connectors.github,
+          client, classification, route.winner, routing, litellmConfig, identifier, connectors.github,
         );
 
         // Draft
@@ -81,7 +84,7 @@ async function main() {
 
         // Notify Slack
         const slackTs = await notifySlack(
-          client, proposalId, classification, route, drafts, env.SCALEKIT_USER_IDENTIFIER, connectors.slack,
+          client, proposalId, classification, route, drafts, identifier, connectors.slack,
         );
         if (slackTs) {
           updateProposalSlackTs(db, proposalId, slackTs);

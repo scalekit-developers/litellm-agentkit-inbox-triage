@@ -1,6 +1,7 @@
 import 'dotenv/config';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
+import { randomUUID } from 'crypto';
 import yaml from 'js-yaml';
 import { z } from 'zod';
 
@@ -10,7 +11,6 @@ const EnvSchema = z.object({
   SCALEKIT_ENV_URL: z.string().url(),
   SCALEKIT_CLIENT_ID: z.string().min(1),
   SCALEKIT_CLIENT_SECRET: z.string().min(1),
-  SCALEKIT_USER_IDENTIFIER: z.string().min(1),
   // Connection names must match the exact names in Scalekit dashboard → AgentKit → Connections
   GMAIL_CONNECTION_NAME: z.string().min(1).default('gmail'),
   GITHUB_CONNECTION_NAME: z.string().min(1).default('github'),
@@ -37,6 +37,25 @@ export function loadEnv(): Env {
     throw new Error(`Missing or invalid env vars: ${missing}`);
   }
   return result.data;
+}
+
+/**
+ * Returns a stable opaque identifier for the connected user.
+ * Reads from DATA_DIR/identifier.txt; auto-generates and persists a UUID on first run.
+ * Never sourced from .env — it is an internal implementation detail, not a config value.
+ */
+export function loadIdentifier(dataDir: string): string {
+  mkdirSync(dataDir, { recursive: true });
+  const idFile = resolve(dataDir, 'identifier.txt');
+
+  if (existsSync(idFile)) {
+    const stored = readFileSync(idFile, 'utf-8').trim();
+    if (stored.length > 0) return stored;
+  }
+
+  const id = randomUUID();
+  writeFileSync(idFile, id + '\n', 'utf-8');
+  return id;
 }
 
 // ---------- routing.yaml ----------
