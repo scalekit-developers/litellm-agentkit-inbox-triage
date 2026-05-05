@@ -24,7 +24,7 @@ export async function actOnProposal(
 
   // 1. Create GitHub issue
   log.info({ repo: route.winner.name, title: drafts.issueTitle }, 'act: creating github issue');
-  const issue = await callTool(client, connectors.github, 'github_create_issue', {
+  const issue = await callTool(client, connectors.github, 'github_issue_create', {
     owner,
     repo,
     title: drafts.issueTitle,
@@ -39,9 +39,11 @@ export async function actOnProposal(
   const replyBody = `${drafts.emailReplyBody}\n\n---\nTracking issue: ${githubUrl}`;
   let emailSent = false;
   try {
-    await callTool(client, connectors.gmail, 'gmail_reply_to_email', {
-      threadId: proposal.thread_id,
+    await callTool(client, connectors.gmail, 'gmail_send_email', {
+      to: proposal.from_address,
+      subject: `Re: ${proposal.subject}`,
       body: replyBody,
+      thread_id: proposal.thread_id,
     }, identifier);
     emailSent = true;
     log.info({ threadId: proposal.thread_id }, 'act: email reply sent');

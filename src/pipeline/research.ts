@@ -20,26 +20,29 @@ export interface ResearchResult {
 
 const SYSTEM_PROMPT = `You are a GitHub issue researcher. Your job is to find existing issues related to a reported problem.
 
-You have access to the github_search_issues tool. Use it to search for related issues.
-When you have gathered enough information (or after at most 3 searches), respond with ONLY a JSON object:
+You have access to the github_issues_list tool. Use it to list issues filtered by labels and state.
+Pick labels that match the keywords in the problem report. You can call the tool up to 3 times with different label combinations.
+When you have gathered enough information, respond with ONLY a JSON object:
 {
   "done": true,
   "related": [{"number": 123, "title": "...", "url": "...", "state": "open"|"closed"}],
-  "searchQueries": ["query1", "query2"]
+  "searchQueries": ["labels used1", "labels used2"]
 }`;
 
-const GITHUB_SEARCH_TOOL: OpenAI.ChatCompletionTool = {
+const GITHUB_LIST_TOOL: OpenAI.ChatCompletionTool = {
   type: 'function',
   function: {
-    name: 'github_search_issues',
-    description: 'Search GitHub issues in a repository',
+    name: 'github_issues_list',
+    description: 'List GitHub issues in a repository, optionally filtered by labels and state',
     parameters: {
       type: 'object',
       properties: {
-        repo: { type: 'string', description: 'owner/repo format' },
-        query: { type: 'string', description: 'search query' },
+        owner: { type: 'string', description: 'Repository owner' },
+        repo: { type: 'string', description: 'Repository name (without owner)' },
+        labels: { type: 'string', description: 'Comma-separated label names to filter by' },
+        state: { type: 'string', enum: ['open', 'closed', 'all'], description: 'Issue state filter (default: open)' },
       },
-      required: ['repo', 'query'],
+      required: ['owner', 'repo'],
     },
   },
 };
@@ -68,7 +71,7 @@ export async function researchRelatedIssues(
     const result = await complete({
       stage: 'research',
       messages,
-      tools: [GITHUB_SEARCH_TOOL],
+      tools: [GITHUB_LIST_TOOL],
       routing,
       ...litellmConfig,
     });
@@ -92,17 +95,19 @@ export async function researchRelatedIssues(
 
     // Execute each tool call
     for (const tc of result.toolCalls) {
-      const args = JSON.parse(tc.function.arguments) as { repo: string; query: string };
-      searchQueries.push(args.query);
+      const args = JSON.parse(tc.function.arguments) as { owner: string; repo: string; labels?: string; state?: string };
+      const labelDesc = args.labels ?? '(no labels)';
+      searchQueries.push(`${args.owner}/${args.repo} labels:${labelDesc}`);
 
-      log.debug({ query: args.query, repo: args.repo }, 'research: searching github');
+      log.debug({ labels: args.labels, owner: args.owner, repo: args.repo }, 'research: listing github issues');
 
       let toolResult: unknown;
       try {
-        toolResult = await callTool(client, githubConnectionName, 'github_search_issues', {
-          owner: args.repo.split('/')[0],
-          repo: args.repo.split('/')[1],
-          query: args.query,
+        toolResult = await callTool(client, githubConnectionName, 'github_issues_list', {
+          owner: args.owner,
+          repo: args.repo,
+          labels: args.labels,
+          state: args.state ?? 'open',
         }, identifier);
       } catch (err) {
         toolResult = { error: String(err) };

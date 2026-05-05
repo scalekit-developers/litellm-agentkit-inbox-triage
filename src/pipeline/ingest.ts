@@ -45,12 +45,12 @@ export async function ingestThreads(
 ): Promise<GmailThread[]> {
   const cursor = getCursor(db);
 
-  const searchResult = await callTool(client, gmailConnectionName, 'gmail_search_messages', {
+  const fetchResult = await callTool(client, gmailConnectionName, 'gmail_fetch_mails', {
     query: `is:unread after:${Math.floor(new Date(cursor).getTime() / 1000)}`,
-    maxResults: 20,
+    max_results: 20,
   }, identifier) as { messages?: Array<{ id: string; threadId: string }> };
 
-  const messageRefs = searchResult.messages ?? [];
+  const messageRefs = fetchResult.messages ?? [];
   if (messageRefs.length === 0) return [];
 
   log.info({ count: messageRefs.length }, 'gmail: found unread messages');
@@ -59,8 +59,8 @@ export async function ingestThreads(
   let latestDate = cursor;
 
   for (const ref of messageRefs) {
-    const msg = await callTool(client, gmailConnectionName, 'gmail_get_message', {
-      messageId: ref.id,
+    const msg = await callTool(client, gmailConnectionName, 'gmail_get_message_by_id', {
+      message_id: ref.id,
       format: 'full',
     }, identifier) as GmailMessage;
 
