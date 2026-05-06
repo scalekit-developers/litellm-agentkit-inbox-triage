@@ -1,5 +1,5 @@
 # Model assignments per pipeline stage.
-# Model names must match what llm.scalekit.cloud advertises.
+# Model names must match IDs returned by GET /v1/models on your LiteLLM gateway (LITELLM_BASE_URL).
 # Run: curl -H "Authorization: Bearer $LITELLM_API_KEY" $LITELLM_BASE_URL/v1/models
 models:
   classify: claude-haiku-4-5

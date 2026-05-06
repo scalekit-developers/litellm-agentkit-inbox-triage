@@ -72,11 +72,11 @@ models:
   draft_sensitive: claude-opus-4
 ```
 
-To use a different model for drafting, change `draft_default`. To verify which model IDs are available on `llm.scalekit.cloud`:
+To use a different model for drafting, change `draft_default`. To verify which model IDs your gateway exposes, call the OpenAI-compatible models endpoint (same host as `LITELLM_BASE_URL` in `.env`):
 
 ```bash
 curl -H "Authorization: Bearer $LITELLM_API_KEY" \
-     $LITELLM_BASE_URL/v1/models | jq '.data[].id'
+     "$LITELLM_BASE_URL/v1/models" | jq '.data[].id'
 ```
 
 Use any returned ID verbatim as a value in `routing.yaml`.
