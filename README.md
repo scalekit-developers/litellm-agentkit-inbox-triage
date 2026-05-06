@@ -1,6 +1,6 @@
 # Inbox Triage Agent — LiteLLM + Scalekit AgentKit
 
-An end-to-end sample that triages a Gmail inbox, routes each thread to a GitHub repository, and **waits for human approval** before filing an issue and sending a reply. It is aimed at **evaluators** who want a **runnable** path across **AgentKit** (OAuth + tool execution) and the **Scalekit-hosted LiteLLM gateway** (`llm.scalekit.cloud`).
+An end-to-end sample that triages a Gmail inbox, routes each thread to a GitHub repository, and **waits for human approval** before filing an issue and sending a reply. It is aimed at **evaluators** who want a **runnable** path across **AgentKit** (OAuth + tool execution) and an **OpenAI-compatible LiteLLM gateway** (set `LITELLM_BASE_URL` from your Scalekit project’s **LLM Gateway** in the dashboard).
 
 ---
 
@@ -20,7 +20,7 @@ You want to **run the happy path locally** (Gmail → dashboard proposal → app
 | Layer | What it does here |
 |---|---|
 | **Scalekit AgentKit** | OAuth and tool calls for Gmail, GitHub, and Slack under one **opaque user identifier**—your code does not manage refresh tokens or per-provider OAuth apps. |
-| **LiteLLM** (`llm.scalekit.cloud`) | Each pipeline stage calls the gateway with a **stage-specific model** from `routing.yaml`—cheap/fast for classification and research, heavier models for drafting—without embedding upstream provider keys in this app. |
+| **LiteLLM** (your `LITELLM_BASE_URL`) | Each pipeline stage calls the gateway with a **stage-specific model** from `routing.yaml`—cheap/fast for classification and research, heavier models for drafting—without embedding upstream provider keys in this app. |
 
 The process is **polling-based**: on an interval, the app pulls new Gmail threads, runs LLM stages + deterministic routing, stores a **pending proposal** in SQLite, posts to Slack, and serves a **localhost** dashboard for approve/reject.
 
@@ -90,8 +90,9 @@ In the Scalekit dashboard, open **LLM Gateway** and create a **virtual API key**
 Verify the gateway responds:
 
 ```bash
+# Load the same values you put in .env (example: set -a; source .env; set +a)
 curl -H "Authorization: Bearer $LITELLM_API_KEY" \
-     https://llm.scalekit.cloud/v1/models
+     "$LITELLM_BASE_URL/v1/models"
 ```
 
 You should see model IDs in the JSON. Align the names under `routing.yaml` → `models:` with what this endpoint returns.
@@ -115,7 +116,8 @@ GMAIL_CONNECTION_NAME=gmail
 GITHUB_CONNECTION_NAME=github
 SLACK_CONNECTION_NAME=slack
 
-LITELLM_BASE_URL=https://llm.scalekit.cloud
+# Base URL shown in your project → LLM Gateway (OpenAI-compatible root, no trailing slash)
+LITELLM_BASE_URL=https://YOUR_LLM_GATEWAY_HOST
 LITELLM_API_KEY=sk-...
 ```
 
@@ -193,7 +195,7 @@ default:
 | `GMAIL_CONNECTION_NAME` | Exact Connection name for Gmail |
 | `GITHUB_CONNECTION_NAME` | Exact Connection name for GitHub |
 | `SLACK_CONNECTION_NAME` | Exact Connection name for Slack |
-| `LITELLM_BASE_URL` | LiteLLM gateway URL (default `https://llm.scalekit.cloud`) |
+| `LITELLM_BASE_URL` | OpenAI-compatible LiteLLM base URL from **LLM Gateway** in the dashboard (set explicitly in `.env`; do not commit real values) |
 | `LITELLM_API_KEY` | Virtual API key from the dashboard |
 | `POLL_INTERVAL_MS` | Gmail poll interval in ms (default `5000`) |
 | `PORT` | Dashboard port (default `3000`) |
