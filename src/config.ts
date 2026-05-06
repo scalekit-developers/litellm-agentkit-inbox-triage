@@ -15,7 +15,7 @@ const EnvSchema = z.object({
   GMAIL_CONNECTION_NAME: z.string().min(1).default('gmail'),
   GITHUB_CONNECTION_NAME: z.string().min(1).default('github'),
   SLACK_CONNECTION_NAME: z.string().min(1).default('slack'),
-  LITELLM_BASE_URL: z.string().url().default('https://llm.scalekit.cloud'),
+  LITELLM_BASE_URL: z.string().url(),
   LITELLM_API_KEY: z.string().min(1),
   POLL_INTERVAL_MS: z.coerce.number().int().positive().default(5000),
   PORT: z.coerce.number().int().positive().default(3000),

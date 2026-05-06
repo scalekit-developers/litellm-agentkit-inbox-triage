@@ -47,7 +47,7 @@ const ROUTING: RoutingConfig = {
   default: { name: 'scalekit-inc/triage', keywords: [], labels: ['needs-triage'], slack_channel: '#triage' },
 };
 
-const LITELLM_CONFIG = { baseURL: 'https://llm.scalekit.cloud', apiKey: 'test-key' };
+const LITELLM_CONFIG = { baseURL: 'https://gateway.example.test', apiKey: 'test-key' };
 
 // ---------- classify ----------
 
