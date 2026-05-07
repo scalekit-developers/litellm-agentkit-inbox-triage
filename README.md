@@ -157,7 +157,7 @@ Open **`http://localhost:3000`**. A card shows classification, routed repo, rela
 
 ---
 
-**Extending the sample:** to add repos, connectors, or pipeline stages after you have the baseline running, continue with [COOKBOOK.md](./COOKBOOK.md).
+**Extending the sample:** to add repos, connectors, or pipeline stages after you have the baseline running, continue with [GUIDE.md](./GUIDE.md).
 
 ---
 
@@ -250,7 +250,7 @@ src/
 - **Model not found:** re-run the `curl .../v1/models` check and update `routing.yaml` model strings to match gateway IDs.
 - **Dashboard never loads:** wait until logs show **All connectors active**—the server starts only after all three OAuth flows succeed.
 
-Deeper extension and debugging patterns live in [COOKBOOK.md](./COOKBOOK.md).
+Deeper extension and debugging patterns live in [GUIDE.md](./GUIDE.md).
 
 ---
 
@@ -281,7 +281,7 @@ Use a **single** checklist for both “what the sample does today” and “what
 
 ## Next steps
 
-See [COOKBOOK.md](./COOKBOOK.md) for recipes (new connector, new repo row, swap models, add a pipeline stage).
+See [GUIDE.md](./GUIDE.md) for recipes (new connector, new repo row, swap models, add a pipeline stage).
 
 ---
 
