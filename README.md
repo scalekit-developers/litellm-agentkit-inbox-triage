@@ -2,6 +2,8 @@
 
 An end-to-end sample that triages a Gmail inbox, routes each thread to a GitHub repository, and **waits for human approval** before filing an issue and sending a reply. It is aimed at **evaluators** who want a **runnable** path across **AgentKit** (OAuth + tool execution) and an **OpenAI-compatible LiteLLM gateway** (set `LITELLM_BASE_URL` from your Scalekit project’s **LLM Gateway** in the dashboard).
 
+Scalekit provides auth and actions on behalf of users, with 500+ connectors and 20,000+ tools.
+
 ---
 
 ## Who this is for
